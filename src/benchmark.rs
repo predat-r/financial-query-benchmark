@@ -55,7 +55,9 @@ pub async fn exec_query(
         FileType::Parquet => "financials_parquet",
     };
     let start = std::time::Instant::now();
-    let sql = query.replace("{file_name}", table_name);
 
-    (start.elapsed(), ctx.sql(&sql).await.unwrap())
+    let sql = query.replace("{file_name}", table_name);
+    let df = ctx.sql(&sql).await.unwrap();
+
+    (start.elapsed(), df)
 }
