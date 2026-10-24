@@ -12,5 +12,5 @@ async fn main() {
             ORDER BY revenue DESC
             LIMIT 10";
     let result = benchmark(&ctx, query, 5, 30).await;
-    print_result(result);
+    print_result(&result);
 }
