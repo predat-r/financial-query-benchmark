@@ -7,8 +7,8 @@ pub async fn load_parquet(ctx: &SessionContext) {
         "data/sharadar_sf1.parquet",
         ParquetReadOptions::new(),
     )
-        .await
-        .expect("failed to register parquet");
+    .await
+    .expect("failed to register parquet");
 }
 
 pub async fn load_csv(ctx: &SessionContext) {
@@ -17,8 +17,8 @@ pub async fn load_csv(ctx: &SessionContext) {
         "data/sharadar_sf1.csv",
         CsvReadOptions::new(),
     )
-        .await
-        .expect("failed to register csv");
+    .await
+    .expect("failed to register csv");
 }
 pub async fn convert_csv_to_parquet(ctx: &SessionContext) {
     let query = ctx

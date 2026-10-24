@@ -14,13 +14,13 @@ pub async fn benchmark(
 ) -> BenchmarkingResult {
     let mut result = BenchmarkingResult::default();
     prepare_for_benchmarking(ctx).await;
-    for i in 0..warmup_runs {
+    for _i in 0..warmup_runs {
         let (_planning_duration, df) = exec_query(ctx, query, FileType::Csv).await;
         get_results(df).await;
         let (_planning_duration, df) = exec_query(ctx, query, FileType::Parquet).await;
         get_results(df).await;
     }
-    for i in 0..measured_runs {
+    for _i in 0..measured_runs {
         let (planning_duration, df) = exec_query(ctx, query, FileType::Csv).await;
         result.csv_planning_times.push(planning_duration);
         let (execution_duration, _results) = get_results(df).await;
@@ -34,7 +34,7 @@ pub async fn benchmark(
 }
 pub async fn prepare_for_benchmarking(ctx: &SessionContext) {
     load_csv(ctx).await;
-    if (!Path::new("data/sharadar_sf1.parquet").exists()) {
+    if !Path::new("data/sharadar_sf1.parquet").exists() {
         convert_csv_to_parquet(ctx).await;
     }
     load_parquet(ctx).await;
