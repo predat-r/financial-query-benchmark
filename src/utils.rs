@@ -1,8 +1,66 @@
+use crate::statistics::{max, mean, median, min, p95, std_dev};
 use comfy_table::Table;
 use comfy_table::presets::UTF8_FULL;
+use datafusion::functions_nested::map::map;
+use std::collections::HashMap;
 use std::time::Duration;
 
 pub fn print_result(results: &BenchmarkingResult) {
+    print_times(&results);
+    print_statistics(&results);
+}
+
+fn print_statistics(results: &BenchmarkingResult) {
+    let mut table = Table::new();
+    table.load_style(UTF8_FULL);
+
+    table.set_header(vec![
+        "Statistic",
+        "CSV Planning",
+        "Parquet Planning",
+        "CSV Execution",
+        "Parquet Execution",
+    ]);
+
+    let statistics = ["Mean", "Median", "Min", "Max", "p95", "Std Dev"];
+
+    for stat in statistics {
+        table.add_row(vec![
+            stat.to_string(),
+            format!(
+                "{:.3} ms",
+                get_statistic(&results.csv_planning_times, stat).unwrap()
+            ),
+            format!(
+                "{:.3} ms",
+                get_statistic(&results.parquet_planning_times, stat).unwrap()
+            ),
+            format!(
+                "{:.3} ms",
+                get_statistic(&results.csv_execution_times, stat).unwrap()
+            ),
+            format!(
+                "{:.3} ms",
+                get_statistic(&results.parquet_execution_times, stat).unwrap()
+            ),
+        ]);
+    }
+
+    println!("{table}");
+}
+
+fn get_statistic(nums: &[Duration], stat: &str) -> Result<f64, &'static str> {
+    match stat {
+        "Mean" => Ok(mean(nums)),
+        "Median" => Ok(median(nums)),
+        "Min" => Ok(min(nums)),
+        "Max" => Ok(max(nums)),
+        "p95" => Ok(p95(nums)),
+        "Std Dev" => Ok(std_dev(nums)),
+        _ => Err("Invalid Statistic"),
+    }
+}
+fn print_times(results: &BenchmarkingResult) {
     let mut table = Table::new();
     table.load_style(UTF8_FULL);
 
@@ -48,7 +106,6 @@ pub fn print_result(results: &BenchmarkingResult) {
 
     println!("{table}");
 }
-
 #[derive(Default)]
 pub struct BenchmarkingResult {
     pub csv_execution_times: Vec<Duration>,
