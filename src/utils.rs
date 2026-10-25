@@ -1,11 +1,11 @@
 use crate::statistics::{max, mean, median, min, p95, std_dev};
 use comfy_table::Table;
 use comfy_table::presets::UTF8_FULL;
-use datafusion::functions_nested::map::map;
-use std::collections::HashMap;
+use datafusion::arrow::array::{Array, RecordBatch, StringArray};
 use std::time::Duration;
 
 pub fn print_result(results: &BenchmarkingResult) {
+    print_query_results(results);
     print_times(&results);
     print_statistics(&results);
 }
@@ -106,12 +106,38 @@ fn print_times(results: &BenchmarkingResult) {
 
     println!("{table}");
 }
+
+fn print_query_results(result: &BenchmarkingResult) {
+    println!("CSV RESULT:\n");
+    print_plan(result.csv_result.first().unwrap());
+
+    println!("\nPARQUET RESULT:\n");
+    print_plan(result.parquet_result.first().unwrap());
+}
+
+fn print_plan(batches: &[RecordBatch]) {
+    for batch in batches {
+        let plans = batch
+            .column_by_name("plan")
+            .unwrap()
+            .as_any()
+            .downcast_ref::<StringArray>()
+            .unwrap();
+
+        for i in 0..plans.len() {
+            println!("{}", plans.value(i));
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct BenchmarkingResult {
     pub csv_execution_times: Vec<Duration>,
     pub parquet_execution_times: Vec<Duration>,
     pub csv_planning_times: Vec<Duration>,
     pub parquet_planning_times: Vec<Duration>,
+    pub csv_result: Vec<Vec<RecordBatch>>,
+    pub parquet_result: Vec<Vec<RecordBatch>>,
 }
 
 pub enum FileType {

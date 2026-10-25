@@ -1,9 +1,9 @@
+use std::path::Path;
 use crate::file::{convert_csv_to_parquet, load_csv, load_parquet};
 use crate::utils::{BenchmarkingResult, FileType};
 use datafusion::arrow::array::RecordBatch;
 use datafusion::dataframe::DataFrame;
 use datafusion::prelude::SessionContext;
-use std::path::Path;
 use std::time::Duration;
 
 pub async fn benchmark(
@@ -11,9 +11,10 @@ pub async fn benchmark(
     query: &str,
     warmup_runs: usize,
     measured_runs: usize,
+    file_path: &str,
 ) -> BenchmarkingResult {
     let mut result = BenchmarkingResult::default();
-    prepare_for_benchmarking(ctx).await;
+    prepare_for_benchmarking(ctx, file_path).await;
     for _i in 0..warmup_runs {
         let (_planning_duration, df) = exec_query(ctx, query, FileType::Csv).await;
         get_results(df).await;
@@ -23,21 +24,25 @@ pub async fn benchmark(
     for _i in 0..measured_runs {
         let (planning_duration, df) = exec_query(ctx, query, FileType::Csv).await;
         result.csv_planning_times.push(planning_duration);
-        let (execution_duration, _results) = get_results(df).await;
+        let (execution_duration, results) = get_results(df).await;
         result.csv_execution_times.push(execution_duration);
+        result.csv_result.push(results);
         let (planning_duration, df) = exec_query(ctx, query, FileType::Parquet).await;
         result.parquet_planning_times.push(planning_duration);
-        let (execution_duration, _results) = get_results(df).await;
+        let (execution_duration, results) = get_results(df).await;
         result.parquet_execution_times.push(execution_duration);
+        result.parquet_result.push(results);
     }
     result
 }
-pub async fn prepare_for_benchmarking(ctx: &SessionContext) {
-    load_csv(ctx).await;
-    if !Path::new("data/sharadar_sf1.parquet").exists() {
-        convert_csv_to_parquet(ctx).await;
+pub async fn prepare_for_benchmarking(ctx: &SessionContext, file_path: &str) {
+    let csv_path = Path::new(&file_path).with_extension("csv");
+    let parquet_path = Path::new(&file_path).with_extension("parquet");
+    load_csv(ctx, &csv_path).await;
+    if !Path::new(&parquet_path).exists() {
+        convert_csv_to_parquet(ctx, &csv_path).await;
     }
-    load_parquet(ctx).await;
+    load_parquet(ctx, &parquet_path).await;
 }
 pub async fn get_results(df: DataFrame) -> (Duration, Vec<RecordBatch>) {
     let start = std::time::Instant::now();
