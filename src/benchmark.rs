@@ -1,9 +1,9 @@
-use std::path::Path;
 use crate::file::{convert_csv_to_parquet, load_csv, load_parquet};
 use crate::utils::{BenchmarkingResult, FileType};
 use datafusion::arrow::array::RecordBatch;
 use datafusion::dataframe::DataFrame;
 use datafusion::prelude::SessionContext;
+use std::path::Path;
 use std::time::Duration;
 
 pub async fn benchmark(

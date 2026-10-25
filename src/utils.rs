@@ -6,8 +6,8 @@ use std::time::Duration;
 
 pub fn print_result(results: &BenchmarkingResult) {
     print_query_results(results);
-    print_times(&results);
-    print_statistics(&results);
+    print_times(results);
+    print_statistics(results);
 }
 
 fn print_statistics(results: &BenchmarkingResult) {

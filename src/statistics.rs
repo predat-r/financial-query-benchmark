@@ -1,6 +1,3 @@
-use datafusion::functions_aggregate::average::avg;
-use datafusion::prelude::power;
-use std::ops::Sub;
 use std::time::Duration;
 
 pub fn mean(nums: &[Duration]) -> f64 {
@@ -25,7 +22,7 @@ pub fn median(nums: &[Duration]) -> f64 {
 
     values.sort_by(|a, b| a.total_cmp(b));
 
-    if values.len() % 2 != 0 {
+    if !values.len().is_multiple_of(2) {
         return values[values.len() / 2];
     }
     let mid = values.len() / 2;
@@ -58,7 +55,7 @@ pub fn p95(nums: &[Duration]) -> f64 {
 
     values.sort_by(|a, b| a.total_cmp(b));
     let index = (values.len() as f64 * 0.95).ceil() as usize - 1;
-    values[index as usize]
+    values[index]
 }
 
 pub fn std_dev(nums: &[Duration]) -> f64 {
