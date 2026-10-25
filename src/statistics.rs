@@ -1,4 +1,5 @@
 use datafusion::functions_aggregate::average::avg;
+use datafusion::prelude::power;
 use std::ops::Sub;
 use std::time::Duration;
 
@@ -58,4 +59,20 @@ pub fn p95(nums: &[Duration]) -> f64 {
     values.sort_by(|a, b| a.total_cmp(b));
     let index = (values.len() as f64 * 0.95).ceil() as usize - 1;
     values[index as usize]
+}
+
+pub fn std_dev(nums: &[Duration]) -> f64 {
+    assert!(
+        !nums.is_empty(),
+        "Cannot calculate statistics on empty data"
+    );
+    let mean = mean(nums);
+    let sum_squared: f64 = nums
+        .iter()
+        .map(|duration| {
+            let millis = duration.as_secs_f64() * 1000.0;
+            (millis - mean).powi(2)
+        })
+        .sum();
+    (sum_squared / nums.len() as f64).sqrt()
 }
