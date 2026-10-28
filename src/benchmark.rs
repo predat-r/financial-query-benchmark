@@ -40,7 +40,7 @@ pub async fn prepare_for_benchmarking(ctx: &SessionContext, file_path: &str) {
     let parquet_path = Path::new(&file_path).with_extension("parquet");
     load_csv(ctx, &csv_path).await;
     if !Path::new(&parquet_path).exists() {
-        convert_csv_to_parquet(ctx, &csv_path).await;
+        convert_csv_to_parquet(ctx, &parquet_path).await;
     }
     load_parquet(ctx, &parquet_path).await;
 }
